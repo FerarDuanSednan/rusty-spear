@@ -4,6 +4,17 @@ An app to create nickel.rs web project.
 
 Not for serious use ( for the moment :) )
 
+# TODO
+- [x] Generate base project structure
+- [ ] Improve default landing page
+- [ ] Add support for zurb / bootstrap
+- [ ] Allow the use of other template engines than mustache
+- [ ] Add generator for controllers/views/...
+- [ ] Clean the code ( yes, no pattern or whatever for now ... )
+- [ ] err... find a better name ?
+
+# Usage
+
 ```sh
 git clone https://github.com/FerarDuanSednan/laughing-journey.git
 cd laughing-journey
@@ -21,10 +32,11 @@ FLAGS:
 SUBCOMMANDS:
     help    Prints this message
     new     Create a new project
+    		--skeleton=[path] Set path to skeleton folder
 ```
 
 ```
-$ ./target/debug/latr new project
+$ $LATR_PATH/latr new --skeleton=$SKELETON_FOLDER project
 $ tree project
 project
 ├── assets
