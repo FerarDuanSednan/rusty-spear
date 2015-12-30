@@ -30,7 +30,7 @@ fn create_structure(params : &Params) -> Result<(), io::Error> {
     let _ = Command::new("cargo").args(&["new", params.project_name]).output().unwrap_or_else(|e| { panic!("Failed to execute cargo: {}", e) });
 
     copy_skeleton( &skeleton_path, &base_path );
- 
+
     // Add nickel dependency to Cargo.toml
     let mut f = try!(OpenOptions::new().write(true).append(true).open( base_path.join("Cargo.toml").as_path() ));
     try!(f.write_all(b"nickel = \"*\"\n\n"));
@@ -75,6 +75,15 @@ fn copy_skeleton(skeleton_path : &Path, project_path : &Path) {
     }
 }
 
+/**
+ * TODO Check if the plugin exists
+ * TODO Before copying, check if we don't override something
+ */
+fn install_plugin(plugins_path : &Path, plugin_name : &str, project_path : &Path) {
+    let plugin_path = plugins_path.join(plugin_name);
+    copy_skeleton(plugin_path.as_path(), project_path);
+}
+
 fn main() {
     let matches = App::new("lart")
         .version("0.1")
@@ -89,14 +98,22 @@ fn main() {
                          .long("skeleton")
                          .help("Set the path to the skeleton folder.")
                          .takes_value(true)))
+        .subcommand(SubCommand::with_name("install")
+                    .about("Install a plugin")
+                    .arg(Arg::with_name("PLUGINS_NAMES")
+                         .help("Name of the plugin to install")
+                         .required(true))
+                    .arg(Arg::with_name("PLUGINS_PATH")
+                         .long("plugins-path")
+                         .help("Set the path to the plugins folder.")
+                         .takes_value(true)))
         .get_matches();
 
-    // You can information about subcommands by requesting their matches by name
-    // (as below), requesting just the name used, or both at the same time
+    // ----- new -----
     if let Some(matches) = matches.subcommand_matches("new") {
         let _ = Command::new("cargo").arg("--version").output().unwrap_or_else(|e| { panic!("Failed to execute cargo: {}", e) });
 
-        // Encode the resulting data.
+        // NAME is present
         if matches.is_present("NAME") {
             let name = matches.value_of("NAME").unwrap();
             let project_path = env::current_dir().unwrap().join(name);
@@ -113,5 +130,25 @@ fn main() {
             create_structure(&params).expect("Failure creating structure.");
         }
     }
+
+    // ----- install -----
+    if let Some(matches) = matches.subcommand_matches("install") {
+
+        if matches.is_present("PLUGINS_NAMES") {
+            let plugins_names = matches.value_of("PLUGINS_NAMES").unwrap();
+            let plugins : Vec<&str> = plugins_names.split(",").collect();
+
+            let mut plugins_path = Path::new("plugins");
+            let project_path = env::current_dir().unwrap();
+            if matches.is_present("PLUGINS_PATH") {
+                plugins_path = Path::new(matches.value_of("PLUGINS_PATH").unwrap());
+            }
+
+            for plugin in plugins {
+                install_plugin(plugins_path, plugin, project_path.as_path());
+            }
+        }
+    }
+
 }
 
