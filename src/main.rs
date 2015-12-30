@@ -1,4 +1,6 @@
 extern crate clap;
+extern crate walkdir;
+
 use clap::{Arg, App, SubCommand};
 
 use std::io;
@@ -9,7 +11,7 @@ use std::path::Path;
 
 use std::process::Command;
 
-const TEMPLATE_PATH : &'static str = "./templates";
+use walkdir::WalkDir;
 
 fn create_structure(project : &str) -> Result<(), io::Error> {
     let base_path = Path::new(project);
@@ -17,39 +19,47 @@ fn create_structure(project : &str) -> Result<(), io::Error> {
     // Call to cargo to create base project
     let _ = Command::new("cargo").args(&["new", project]).output().unwrap_or_else(|e| { panic!("Failed to execute cargo: {}", e) });
 
-    let src_path = base_path.join("src");
+    match base_path.to_str() {
+        Some(path) => copy_skeleton("skeleton", path),
+        None => panic!("Failed to copy skeleton.")
+    }
 
-    // src/controllers/
-    try!(fs::create_dir( src_path.as_path().join("controllers").as_path() ));
-
-    // src/config/
-    try!(fs::create_dir( src_path.as_path().join("config").as_path() ));
-
-    // src/models/
-    try!(fs::create_dir( src_path.as_path().join("models").as_path() ));
-
-    // src/helpers/
-    try!(fs::create_dir( src_path.as_path().join("helpers").as_path() ));
-
-    // views/
-    try!(fs::create_dir( base_path.join("views").as_path() ));
-
-    // assets/{javascripts,stylesheets,images}
-    let assets_path = base_path.join("assets");
-    try!(fs::create_dir( assets_path.as_path() ));
-    try!(fs::create_dir( assets_path.as_path().join("javascripts").as_path() ));
-    try!(fs::create_dir( assets_path.as_path().join("stylesheets").as_path() ));
-    try!(fs::create_dir( assets_path.as_path().join("images").as_path() ));
-
-    // populate with files
-    // Cargo.toml
+    // Add nickel dependency to Cargo.toml
     let mut f = try!(OpenOptions::new().write(true).append(true).open( base_path.join("Cargo.toml").as_path() ));
     try!(f.write_all(b"nickel = \"*\"\n\n"));
 
-    // main.rs
-    try!(fs::copy( Path::new(TEMPLATE_PATH).join("main.rs").as_path(), src_path.join("main.rs").as_path() ));
-
     Ok(())
+}
+
+fn mkdir(dir: &Path) -> io::Result<()> {
+    if fs::metadata(&dir).is_err() {
+        try!(fs::create_dir(dir));
+    }
+    Ok(())
+}
+
+fn cp(from : &Path,  to: &Path) -> io::Result<()> {
+    try!(fs::copy(from, to));
+    Ok(())
+}
+
+fn copy_skeleton(skeleton_path : &str, project_path : &str) {
+    let project = Path::new(project_path);
+
+    for entry in WalkDir::new(skeleton_path).follow_links(false).min_depth(1) {
+        let entry = entry.unwrap();
+
+        let mut comps = entry.path().components();
+        comps.next();
+        let relative_path = comps.as_path();
+
+        if entry.file_type().is_dir() {
+            mkdir( project.join(relative_path).as_path()  );
+        } else if entry.file_type().is_file() {
+            cp(entry.path(), project.join(relative_path).as_path() );
+
+        }
+    }
 }
 
 fn main() {
