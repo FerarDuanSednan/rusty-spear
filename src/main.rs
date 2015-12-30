@@ -9,21 +9,28 @@ use std::fs;
 use std::fs::OpenOptions;
 use std::path::Path;
 
+use std::env;
+
 use std::process::Command;
 
 use walkdir::WalkDir;
 
-fn create_structure(project : &str) -> Result<(), io::Error> {
-    let base_path = Path::new(project);
+struct Params<'a> {
+    project_name : &'a str,
+    project_path: &'a Path,
+    skeleton_path: &'a Path
+}
+
+fn create_structure(params : &Params) -> Result<(), io::Error> {
+    let base_path = params.project_path;
+    let skeleton_path = params.skeleton_path;
+
 
     // Call to cargo to create base project
-    let _ = Command::new("cargo").args(&["new", project]).output().unwrap_or_else(|e| { panic!("Failed to execute cargo: {}", e) });
+    let _ = Command::new("cargo").args(&["new", params.project_name]).output().unwrap_or_else(|e| { panic!("Failed to execute cargo: {}", e) });
 
-    match base_path.to_str() {
-        Some(path) => copy_skeleton("skeleton", path),
-        None => panic!("Failed to copy skeleton.")
-    }
-
+    copy_skeleton( &skeleton_path, &base_path );
+ 
     // Add nickel dependency to Cargo.toml
     let mut f = try!(OpenOptions::new().write(true).append(true).open( base_path.join("Cargo.toml").as_path() ));
     try!(f.write_all(b"nickel = \"*\"\n\n"));
@@ -43,35 +50,45 @@ fn cp(from : &Path,  to: &Path) -> io::Result<()> {
     Ok(())
 }
 
-fn copy_skeleton(skeleton_path : &str, project_path : &str) {
-    let project = Path::new(project_path);
+fn copy_skeleton(skeleton_path : &Path, project_path : &Path) {
 
+    let mut relative_path = project_path.to_path_buf();
+    let mut prev_depth = 0;
     for entry in WalkDir::new(skeleton_path).follow_links(false).min_depth(1) {
         let entry = entry.unwrap();
 
-        let mut comps = entry.path().components();
-        comps.next();
-        let relative_path = comps.as_path();
+        if entry.depth() <= prev_depth {
+            for _ in 0..(prev_depth - entry.depth() +1) {
+                relative_path.pop();
+            }
+        }
+
+        relative_path.push(entry.file_name());
+
+        prev_depth = entry.depth();
 
         if entry.file_type().is_dir() {
-            mkdir( project.join(relative_path).as_path()  );
+            mkdir( relative_path.as_path() ).expect("Fail to write directory");
         } else if entry.file_type().is_file() {
-            cp(entry.path(), project.join(relative_path).as_path() );
-
+            cp(entry.path(), relative_path.as_path() ).expect("Fail to write file");
         }
     }
 }
 
 fn main() {
     let matches = App::new("lart")
-        .version("1.0")
+        .version("0.1")
         .author("Arnaud Fernandés <arnaud.fernandes@laposte.net>")
         .about("Does awesome things")
         .subcommand(SubCommand::with_name("new")
                     .about("Create a new project")
                     .arg(Arg::with_name("NAME")
-                         .required(true)
-                        ))
+                         .help("Name of the project")
+                         .required(true))
+                    .arg(Arg::with_name("SKEL_PATH")
+                         .long("skeleton")
+                         .help("Set the path to the skeleton folder.")
+                         .takes_value(true)))
         .get_matches();
 
     // You can information about subcommands by requesting their matches by name
@@ -81,11 +98,20 @@ fn main() {
 
         // Encode the resulting data.
         if matches.is_present("NAME") {
-            // create here the project directories
-            create_structure(matches.value_of("NAME").unwrap());
+            let name = matches.value_of("NAME").unwrap();
+            let project_path = env::current_dir().unwrap().join(name);
+            let mut skeleton_path = env::current_dir().unwrap().join("skeleton"); 
+
+            if matches.is_present("SKEL_PATH") {
+                let skel_path = matches.value_of("SKEL_PATH").unwrap();
+                skeleton_path = env::current_dir().unwrap().join(skel_path);
+            }
+
+            let params = Params {project_name : name, skeleton_path : skeleton_path.as_path(), project_path: project_path.as_path() };
+            // TODO: check if path are real directories
+
+            create_structure(&params).expect("Failure creating structure.");
         }
     }
-
-    // more program logic goes here...
 }
 
