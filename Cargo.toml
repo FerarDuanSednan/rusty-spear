@@ -3,10 +3,6 @@ name = "latr"
 version = "0.1.0"
 authors = ["arnaud.fernandes <arnaud.fernandes@iizzii.com>"]
 
-[lib]
-name = "latr"
-path = "src/lib.rs"
-
 [dependencies]
 clap = "1"
 walkdir = "0.1"

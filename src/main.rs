@@ -102,6 +102,7 @@ fn main() {
                     .about("Install a plugin")
                     .arg(Arg::with_name("PLUGINS_NAMES")
                          .help("Name of the plugin to install")
+                         .multiple(true)
                          .required(true))
                     .arg(Arg::with_name("PLUGINS_PATH")
                          .long("plugins-path")
@@ -135,8 +136,7 @@ fn main() {
     if let Some(matches) = matches.subcommand_matches("install") {
 
         if matches.is_present("PLUGINS_NAMES") {
-            let plugins_names = matches.value_of("PLUGINS_NAMES").unwrap();
-            let plugins : Vec<&str> = plugins_names.split(",").collect();
+            let plugins = matches.values_of("PLUGINS_NAMES").unwrap();
 
             let mut plugins_path = Path::new("plugins");
             let project_path = env::current_dir().unwrap();
