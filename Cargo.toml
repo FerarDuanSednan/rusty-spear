@@ -1,5 +1,5 @@
 [package]
-name = "rustonrails"
+name = "latr"
 version = "0.1.0"
 authors = ["arnaud.fernandes <arnaud.fernandes@iizzii.com>"]
 
