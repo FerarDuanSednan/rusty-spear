@@ -6,6 +6,7 @@ Not for serious use ( for the moment :) )
 
 # TODO
 - [x] Generate base project structure
+- [x] Add a plugin support for assets ( kind of... )
 - [ ] Improve default landing page
 - [ ] Add support for zurb / bootstrap
 - [ ] Allow the use of other template engines than mustache
@@ -19,6 +20,7 @@ Not for serious use ( for the moment :) )
 git clone https://github.com/FerarDuanSednan/laughing-journey.git
 cd laughing-journey
 cargo build
+export LATR=`pwd`/target/debug/latr
 ```
 
 ```
@@ -30,13 +32,17 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    help    Prints this message
-    new     Create a new project
-    		--skeleton=[path] Set path to skeleton folder
+    help       Prints this message
+    install    Install a plugin
+    		latr install [OPTIONS] <PLUGINS_NAMES>
+    		--plugins-path <PLUGINS_PATH>    Set the path to the plugins folder.
+    new        Create a new project
+    		latr new [OPTIONS] <NAME>
+    		--skeleton <SKEL_PATH>    Set the path to the skeleton folder.
 ```
 
 ```
-$ $LATR_PATH/latr new --skeleton=$SKELETON_FOLDER project
+$ $LATR new --skeleton=$SKELETON_FOLDER project
 $ tree project
 project
 ├── assets
