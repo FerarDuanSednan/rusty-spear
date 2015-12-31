@@ -1,30 +1,36 @@
 extern crate clap;
 extern crate walkdir;
+extern crate git2;
+extern crate tempdir;
+
+use std::{io, fs, env};
+use std::io::prelude::*;
+use std::fs::OpenOptions;
+use std::path::Path;
+use std::process::Command;
+
 
 use clap::{Arg, App, SubCommand};
 
-use std::io;
-use std::io::prelude::*;
-use std::fs;
-use std::fs::OpenOptions;
-use std::path::Path;
-
-use std::env;
-
-use std::process::Command;
-
 use walkdir::WalkDir;
+
+use git2::Repository;
+use tempdir::TempDir;
+
+const DEFAULT_SKELETON_PATH : &'static str = "https://github.com/FerarDuanSednan/latr-skeleton.git";
 
 struct Params<'a> {
     project_name : &'a str,
     project_path: &'a Path,
-    skeleton_path: &'a Path
+    skeleton_path: &'a str 
 }
 
 fn create_structure(params : &Params) -> Result<(), io::Error> {
     let base_path = params.project_path;
-    let skeleton_path = params.skeleton_path;
 
+    let tmp_skeleton = clone_to_tmp(params.skeleton_path);
+
+    let skeleton_path = tmp_skeleton.path();
 
     // Call to cargo to create base project
     let _ = Command::new("cargo").args(&["new", params.project_name]).output()
@@ -83,6 +89,22 @@ fn copy_skeleton(skeleton_path : &Path, project_path : &Path) {
     }
 }
 
+fn clone_to_tmp(url : &str) -> TempDir {
+
+    let tempdir = match TempDir::new("latr") {
+        Ok(t) => t,
+        Err(e) => panic!("Failure creating directory : {}", e)
+    };
+
+    match Repository::clone(url, tempdir.path()) {
+        Err(e) => {
+            tempdir.close();
+            panic!("Fail to clone the repository : {}", e);
+        },
+        _ => tempdir
+    }
+}
+
 /**
  * TODO Check if the plugin exists
  * TODO Before copying, check if we don't override something
@@ -104,7 +126,7 @@ fn main() {
                          .required(true))
                     .arg(Arg::with_name("SKEL_PATH")
                          .long("skeleton")
-                         .help("Set the path to the skeleton folder.")
+                         .help("Set the path to the skeleton (url to git repository).")
                          .takes_value(true)))
         .subcommand(SubCommand::with_name("install")
                     .about("Install a plugin")
@@ -126,14 +148,13 @@ fn main() {
         if matches.is_present("NAME") {
             let name = matches.value_of("NAME").unwrap();
             let project_path = env::current_dir().unwrap().join(name);
-            let mut skeleton_path = env::current_dir().unwrap().join("skeleton"); 
+            let mut skeleton_path = DEFAULT_SKELETON_PATH;
 
             if matches.is_present("SKEL_PATH") {
-                let skel_path = matches.value_of("SKEL_PATH").unwrap();
-                skeleton_path = env::current_dir().unwrap().join(skel_path);
+                skeleton_path = matches.value_of("SKEL_PATH").unwrap();
             }
 
-            let params = Params {project_name : name, skeleton_path : skeleton_path.as_path(), project_path: project_path.as_path() };
+            let params = Params {project_name : name, skeleton_path : skeleton_path, project_path: project_path.as_path() };
             // TODO: check if path are real directories
 
             create_structure(&params).expect("Failure creating structure.");

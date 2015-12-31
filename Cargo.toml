@@ -1,7 +1,7 @@
 [package]
 name = "latr"
 version = "0.1.0"
-authors = ["arnaud.fernandes <arnaud.fernandes@iizzii.com>"]
+authors = ["arnaud.fernandes <arnaud.fernandes@laposte.net>"]
 
 [lib]
 name = "latr"
@@ -12,3 +12,6 @@ clap = "1"
 walkdir = "0.1"
 nickel = "*"
 lazy_static = "0.1.*"
+git2 = "0.3"
+tempdir = "0.3"
+
