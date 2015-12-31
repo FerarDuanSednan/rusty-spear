@@ -27,13 +27,21 @@ fn create_structure(params : &Params) -> Result<(), io::Error> {
 
 
     // Call to cargo to create base project
-    let _ = Command::new("cargo").args(&["new", params.project_name]).output().unwrap_or_else(|e| { panic!("Failed to execute cargo: {}", e) });
+    let _ = Command::new("cargo").args(&["new", params.project_name]).output()
+        .unwrap_or_else(|e| { panic!("Failed to execute cargo: {}", e) });
 
     copy_skeleton( &skeleton_path, &base_path );
 
     // Add nickel dependency to Cargo.toml
-    let mut f = try!(OpenOptions::new().write(true).append(true).open( base_path.join("Cargo.toml").as_path() ));
-    try!(f.write_all(b"nickel = \"*\"\n\n"));
+    let mut f = try!(OpenOptions::new().write(true).append(true)
+                     .open( base_path.join("Cargo.toml").as_path() ));
+    try!(f.write_all(
+br#"
+nickel = "*"
+
+[dependencies.latr]
+git = "https://github.com/FerarDuanSednan/laughing-journey.git"
+"#));
 
     Ok(())
 }
