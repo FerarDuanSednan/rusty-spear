@@ -7,6 +7,7 @@ Not for serious use ( for the moment :) )
 # TODO
 - [x] Generate base project structure
 - [x] Add a plugin support for assets ( kind of... )
+- [ ] Add database communication / ORM
 - [ ] Improve default landing page
 - [ ] Add support for zurb / bootstrap
 - [ ] Allow the use of other template engines than mustache
