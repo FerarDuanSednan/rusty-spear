@@ -1,4 +1,4 @@
-# laughing-journey
+# rusty-spear
 
 An app to create nickel.rs web project.
 
@@ -18,10 +18,10 @@ Not for serious use ( for the moment :) )
 # Usage
 
 ```sh
-git clone https://github.com/FerarDuanSednan/laughing-journey.git
-cd laughing-journey
+git clone https://github.com/FerarDuanSednan/rusty-spear.git
+cd rusty-spear
 cargo build
-export LATR=`pwd`/target/debug/latr
+export LATR=`pwd`/target/debug/rusp
 ```
 
 ```
@@ -43,7 +43,7 @@ SUBCOMMANDS:
 ```
 
 ```
-$ $LATR new --skeleton=$SKELETON_FOLDER project
+$ $LATR new project
 $ tree project
 project
 ├── assets
