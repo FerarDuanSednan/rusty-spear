@@ -17,7 +17,7 @@ use walkdir::WalkDir;
 use git2::Repository;
 use tempdir::TempDir;
 
-const DEFAULT_SKELETON_PATH : &'static str = "https://github.com/FerarDuanSednan/latr-skeleton.git";
+const DEFAULT_SKELETON_PATH : &'static str = "https://github.com/FerarDuanSednan/rusp-skeleton.git";
 
 struct Params<'a> {
     project_name : &'a str,
@@ -98,7 +98,7 @@ fn clone_to_tmp(url : &str) -> TempDir {
 
     match Repository::clone(url, tempdir.path()) {
         Err(e) => {
-            tempdir.close();
+            let _ = tempdir.close(); // don't really care about this
             panic!("Fail to clone the repository : {}", e);
         },
         _ => tempdir

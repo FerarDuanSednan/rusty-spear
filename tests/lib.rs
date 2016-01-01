@@ -1,13 +1,11 @@
-extern crate latr;
+extern crate rusp;
 
-use latr::Latr;
+use rusp::RuspApp;
 
 #[test]
-fn access_host_setting() {
-    assert_eq!(Latr::get_host(), "127.0.0.1:3000" );
+fn rust_app_persistance() {
+    assert_eq!(RuspApp::get_host(), "127.0.0.1:3000");
 
-    Latr::set_host("127.0.0.1:3001");
-    assert_eq!(Latr::get_host(), "127.0.0.1:3001" );
+    RuspApp::set_host("127.0.0.1:3001");
+    assert_eq!(RuspApp::get_host(), "127.0.0.1:3001");
 }
-
-
