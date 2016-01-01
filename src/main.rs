@@ -45,8 +45,8 @@ fn create_structure(params : &Params) -> Result<(), io::Error> {
 br#"
 nickel = "*"
 
-[dependencies.latr]
-git = "https://github.com/FerarDuanSednan/laughing-journey.git"
+[dependencies.rusp]
+git = "https://github.com/FerarDuanSednan/rusty-spear.git"
 "#));
 
     Ok(())
@@ -91,7 +91,7 @@ fn copy_skeleton(skeleton_path : &Path, project_path : &Path) {
 
 fn clone_to_tmp(url : &str) -> TempDir {
 
-    let tempdir = match TempDir::new("latr") {
+    let tempdir = match TempDir::new("rusp") {
         Ok(t) => t,
         Err(e) => panic!("Failure creating directory : {}", e)
     };
@@ -115,7 +115,7 @@ fn install_plugin(plugins_path : &Path, plugin_name : &str, project_path : &Path
 }
 
 fn main() {
-    let matches = App::new("lart")
+    let matches = App::new("rusp")
         .version("0.1")
         .author("Arnaud Fernandés <arnaud.fernandes@laposte.net>")
         .about("Does awesome things")

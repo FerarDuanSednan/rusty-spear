@@ -1,10 +1,10 @@
 [package]
-name = "latr"
+name = "rusp"
 version = "0.1.0"
 authors = ["arnaud.fernandes <arnaud.fernandes@laposte.net>"]
 
 [lib]
-name = "latr"
+name = "rusp"
 path = "src/lib.rs"
 
 [dependencies]
